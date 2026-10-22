@@ -1,0 +1,18 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>EcoTrack</title>
+</head>
+<body>
+  <h1>EcoTrack</h1>
+  <p id="status">Checking API…</p>
+  <script>
+    fetch("/api/health")
+      .then(r => r.json())
+      .then(d => { document.getElementById("status").textContent = `API ${d.status} — coach mode: ${d.coach_mode}`; })
+      .catch(() => { document.getElementById("status").textContent = "API not reachable"; });
+  </script>
+</body>
+</html>
