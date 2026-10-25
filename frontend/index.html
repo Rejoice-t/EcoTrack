@@ -3,16 +3,46 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="EcoTrack: estimate and reduce household water and electricity use.">
   <title>EcoTrack</title>
+  <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
-  <h1>EcoTrack</h1>
-  <p id="status">Checking API…</p>
-  <script>
-    fetch("/api/health")
-      .then(r => r.json())
-      .then(d => { document.getElementById("status").textContent = `API ${d.status} — coach mode: ${d.coach_mode}`; })
-      .catch(() => { document.getElementById("status").textContent = "API not reachable"; });
-  </script>
+  <a class="skip-link" href="#view">Skip to content</a>
+
+  <div class="layout">
+    <header class="sidebar">
+      <div class="brand">
+        <span class="brand-mark" aria-hidden="true"><i data-lucide="leaf"></i></span>
+        <span class="brand-name">EcoTrack</span>
+        <button class="menu-toggle btn ghost icon" type="button" aria-expanded="false" aria-controls="nav" aria-label="Open menu">
+          <i data-lucide="menu"></i>
+        </button>
+      </div>
+
+      <nav id="nav" class="nav" aria-label="Main">
+        <a href="#/dashboard" data-route="dashboard"><i data-lucide="house"></i>Your household</a>
+        <a href="#/water" data-route="water"><i data-lucide="droplet"></i>Track water</a>
+        <a href="#/electricity" data-route="electricity"><i data-lucide="zap"></i>Track electricity</a>
+        <a href="#/analytics" data-route="analytics"><i data-lucide="chart-column"></i>Analytics</a>
+        <a href="#/coach" data-route="coach"><i data-lucide="message-circle"></i>Resource coach</a>
+        <a href="#/goals" data-route="goals"><i data-lucide="target"></i>Goals</a>
+        <a href="#/tips" data-route="tips"><i data-lucide="lightbulb"></i>Tips</a>
+        <a href="#/settings" data-route="settings"><i data-lucide="settings"></i>Settings</a>
+      </nav>
+
+      <p class="sidebar-note">
+        All figures are estimates from the activities you record, not meter readings.
+      </p>
+    </header>
+
+    <main id="view" class="main" tabindex="-1" aria-live="polite"></main>
+  </div>
+
+  <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
+
+  <script src="js/vendor/lucide.min.js"></script>
+  <script src="js/vendor/chart.umd.min.js"></script>
+  <script type="module" src="js/app.js"></script>
 </body>
 </html>
