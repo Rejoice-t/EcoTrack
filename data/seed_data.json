@@ -1,0 +1,35 @@
+{
+  "_note": "FICTIONAL demonstration household. Dates are relative to today. Rates are illustrative, not official tariffs.",
+  "days": 63,
+  "settings": {
+    "household_size": 4,
+    "water_rate_per_m3": 30.0,
+    "electricity_rate_per_kwh": 2.5,
+    "rates_are_illustrative": true
+  },
+  "water_patterns": [
+    {"activity_type": "shower", "every_days": 1, "hour": 6, "duration_min": 8, "flow_rate_lpm": 9, "occurrences": 3, "vary": 0.25},
+    {"activity_type": "dishes", "every_days": 1, "hour": 19, "direct_litres": 20, "occurrences": 2, "vary": 0.2},
+    {"activity_type": "handwashing", "every_days": 1, "hour": 12, "duration_min": 0.5, "flow_rate_lpm": 6, "occurrences": 16, "vary": 0.2},
+    {"activity_type": "laundry", "every_days": 3, "hour": 9, "direct_litres": 70, "occurrences": 1, "vary": 0.1},
+    {"activity_type": "gardening", "every_days": 4, "hour": 17, "duration_min": 20, "flow_rate_lpm": 12, "occurrences": 1, "vary": 0.3},
+    {"activity_type": "cleaning", "every_days": 7, "hour": 10, "direct_litres": 15, "occurrences": 2, "vary": 0.1},
+    {"activity_type": "bath", "every_days": 7, "hour": 18, "direct_litres": 110, "occurrences": 1, "vary": 0.1}
+  ],
+  "electricity_weekly": [
+    {"appliance_name": "Geyser", "category": "geyser", "rated_watts": 3000, "hours_per_use": 1.8, "uses_per_day": 1, "vary": 0.15},
+    {"appliance_name": "Kitchen kettle", "category": "kettle", "rated_watts": 2000, "hours_per_use": 0.05, "uses_per_day": 6, "vary": 0.2},
+    {"appliance_name": "Fridge (energy label)", "category": "fridge", "direct_kwh": 7.7, "vary": 0.05,
+     "notes": "Based on the label's annual kWh divided by 52"},
+    {"appliance_name": "LED lighting", "category": "lighting", "rated_watts": 60, "hours_per_use": 5, "uses_per_day": 1, "vary": 0.1},
+    {"appliance_name": "Stove", "category": "stove", "rated_watts": 2000, "hours_per_use": 0.75, "uses_per_day": 1, "vary": 0.2}
+  ],
+  "electricity_events": [
+    {"appliance_name": "Washing machine", "category": "washing_machine", "every_days": 3, "rated_watts": 500, "hours_per_use": 1.2, "uses_per_day": 1},
+    {"appliance_name": "Iron", "category": "iron", "every_days": 4, "rated_watts": 1200, "hours_per_use": 0.5, "uses_per_day": 1}
+  ],
+  "goals": [
+    {"resource": "water", "title": "Water budget this month", "target_value": 12000},
+    {"resource": "electricity", "title": "Electricity budget this month", "target_value": 320}
+  ]
+}
