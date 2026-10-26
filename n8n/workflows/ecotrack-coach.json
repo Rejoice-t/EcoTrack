@@ -1,0 +1,91 @@
+{
+  "name": "EcoTrack Resource Coach",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "ecotrack-coach",
+        "authentication": "headerAuth",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "a1b2c3d4-0001-4000-8000-000000000001",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [0, 0],
+      "webhookId": "ecotrack-coach",
+      "credentials": {
+        "httpHeaderAuth": { "id": "", "name": "EcoTrack shared secret" }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Validate the request from EcoTrack and build the prompt.\n// Throwing an error here makes the webhook fail, and EcoTrack then uses its built-in tips.\nconst body = $input.first().json.body || {};\n\nconst required = ['question', 'period', 'water', 'electricity'];\nfor (const key of required) {\n  if (body[key] === undefined || body[key] === null) throw new Error(`Missing field: ${key}`);\n}\nif (typeof body.question !== 'string' || body.question.length < 3 || body.question.length > 500) {\n  throw new Error('Invalid question');\n}\n\nconst system = `You are EcoTrack's Resource Coach for a household in Namibia.\nYou receive a JSON summary of ESTIMATED water and electricity use, calculated from activities the household recorded. They are not meter readings.\n\nRules:\n- Base every statement only on the supplied data. Quote figures exactly as given.\n- Say the figures are estimates. If contains_demo_data is true, say it is a fictional demo household.\n- Do not invent measurements, prices, tariffs, savings amounts or statistics. If costs_available is false, do not mention money amounts.\n- Never guarantee a reduction in use or bills.\n- Prefer low-cost, realistic household habits. Explain why each suggestion may help, using the data.\n- If the data is too thin to answer, say so in the summary.\n- Never claim to read meters or control appliances.\n- No electrical, gas or plumbing repair instructions: for geysers, wiring or leaks, recommend a qualified professional.\n- Plain, friendly English. No markdown.\n\nReply with ONLY a JSON object, no other text:\n{\"summary\": \"2-4 sentences answering the question\", \"recommendations\": [{\"title\": \"short action\", \"why\": \"1-2 sentences linked to the data\", \"resource\": \"water\" | \"electricity\" | \"both\", \"effort\": \"easy\" | \"moderate\" | \"hard\"}], \"data_note\": \"one sentence on what the data is based on\"}\nGive 2 to 4 recommendations.`;\n\nconst user = `Question: ${body.question}\\n\\nHousehold summary (JSON):\\n${JSON.stringify(body, null, 2)}`;\n\nreturn [{ json: { system, user } }];"
+      },
+      "id": "a1b2c3d4-0002-4000-8000-000000000002",
+      "name": "Validate and build prompt",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [240, 0]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.anthropic.com/v1/messages",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [{ "name": "anthropic-version", "value": "2023-06-01" }]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ model: 'claude-haiku-5-5', max_tokens: 900, system: $json.system, messages: [{ role: 'user', content: $json.user }] }) }}",
+        "options": { "timeout": 15000 }
+      },
+      "id": "a1b2c3d4-0003-4000-8000-000000000003",
+      "name": "Ask the LLM",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [480, 0],
+      "credentials": {
+        "httpHeaderAuth": { "id": "", "name": "Anthropic API key" }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Check the LLM reply has exactly the shape EcoTrack expects.\n// EcoTrack validates it again; anything wrong here falls back to built-in tips.\nconst reply = $input.first().json;\nlet text = (reply.content && reply.content[0] && reply.content[0].text) || '';\ntext = text.trim().replace(/^```(?:json)?/i, '').replace(/```$/, '').trim();\n\nlet data;\ntry { data = JSON.parse(text); } catch (e) { throw new Error('LLM did not return valid JSON'); }\n\nconst RES = ['water', 'electricity', 'both'];\nconst EFF = ['easy', 'moderate', 'hard'];\nif (typeof data.summary !== 'string' || !Array.isArray(data.recommendations) || data.recommendations.length === 0) {\n  throw new Error('LLM response missing summary or recommendations');\n}\n\nconst recommendations = data.recommendations.slice(0, 5).map((r) => ({\n  title: String(r.title || '').slice(0, 120),\n  why: String(r.why || '').slice(0, 600),\n  resource: RES.includes(r.resource) ? r.resource : 'both',\n  effort: EFF.includes(r.effort) ? r.effort : 'easy',\n})).filter((r) => r.title && r.why);\nif (!recommendations.length) throw new Error('No usable recommendations');\n\nreturn [{ json: {\n  summary: data.summary.slice(0, 1200),\n  recommendations,\n  data_note: String(data.data_note || 'These figures are estimates based on recorded activities, not meter readings.').slice(0, 400),\n} }];"
+      },
+      "id": "a1b2c3d4-0004-4000-8000-000000000004",
+      "name": "Parse and validate reply",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [720, 0]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {}
+      },
+      "id": "a1b2c3d4-0005-4000-8000-000000000005",
+      "name": "Respond to EcoTrack",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [960, 0]
+    }
+  ],
+  "connections": {
+    "Webhook": { "main": [[{ "node": "Validate and build prompt", "type": "main", "index": 0 }]] },
+    "Validate and build prompt": { "main": [[{ "node": "Ask the LLM", "type": "main", "index": 0 }]] },
+    "Ask the LLM": { "main": [[{ "node": "Parse and validate reply", "type": "main", "index": 0 }]] },
+    "Parse and validate reply": { "main": [[{ "node": "Respond to EcoTrack", "type": "main", "index": 0 }]] }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "saveDataSuccessExecution": "none",
+    "saveDataErrorExecution": "all"
+  },
+  "pinData": {}
+}
