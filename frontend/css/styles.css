@@ -81,8 +81,7 @@ svg.lucide { width: 18px; height: 18px; stroke-width: 1.75; flex-shrink: 0; }
 }
 
 .brand { display: flex; align-items: center; gap: 10px; padding: 0 8px; }
-.brand-mark { display: inline-grid; place-items: center; width: 32px; height: 32px; border-radius: 9px; background: var(--ink); color: var(--paper); }
-.brand-mark svg.lucide { width: 18px; height: 18px; }
+.brand-logo { width: 34px; height: 34px; display: block; object-fit: contain; }
 .brand-name { font-family: var(--font-display); font-weight: 700; font-size: 21px; letter-spacing: -0.03em; }
 
 .sidebar .menu-toggle { display: none; margin-left: auto; }
